@@ -71,7 +71,7 @@ const Hero = () => {
         </h3>
         
         {/* Corrected width utility from w-8/10 to w-4/5 */}
-        <div className='flex flex-wrap gap-2.5'>
+        <div className='flex gap-2.5 flex-wrap md:w-full w-[20em]'>
           {SOCIAL_LINKS.map((link) => (
             <Link
               key={link.name}
