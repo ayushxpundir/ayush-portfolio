@@ -52,11 +52,11 @@ const Techstack = () => {
         {filteredData.map(({ name, IconComponent, className }) => (
           <div
             key={name}
-            className="flex rounded-lg items-center size-fit gap-1.75 p-1.75 border border-dashed bg-zinc-100 text-zinc-700 border-zinc-400 dark:bg-zinc-900 dark:text-zinc-300 dark:border-zinc-600"
+            className="flex rounded-lg items-center size-fit gap-1.75 md:px-2.5 md:py-1.75 py-1 px-2 border border-dashed bg-zinc-100 text-zinc-700 border-zinc-400 dark:bg-zinc-900 dark:text-zinc-300 dark:border-zinc-600"
           >
             {isMounted ? (
               <IconComponent 
-                className={`shrink-0 w-6 h-4 md:h-6 ${className || ""}`} 
+                className={`shrink-0  h-4 md:h-5 ${className || ""}`} 
               />
             ) : (
               <div className="shrink-0 w-6 h-4 md:h-6" />
