@@ -6,6 +6,7 @@ import Navbar from "@/app/components/Navbar";
 import Projects from "@/app/components/Projects";
 import Techstack from "@/app/components/Techstack";
 import BackButton from "@/components/BackButton"; // 1. Import the button
+import { Metadata } from 'next';
 
 // Export metadata here (Runs on Server)
 export const metadata: Metadata = {
