@@ -1,193 +1,125 @@
-'use client'
+'use client';
 
-import React, { useState, useCallback, useMemo, memo, useEffect } from 'react'
-import { ChevronDown } from 'lucide-react'
-import { experiencesData } from '@/app/data/experienceData'
+import React, { useMemo, memo } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
+import Globe02Icon from '@iconify-react/hugeicons/globe-02';
+import GithubIcon from '@iconify-react/hugeicons/github';
+import { projectsData } from '@/app/data/projectsData';
 
-interface ExperienceItemProps {
-  item: {
-    role: string
-    company: string
-    location: string
-    type: string
-    period: string
-    description?: string[]
-    tools?: string[]
-  }
-  isOpen: boolean
-  onToggle: (index: number) => void
-  index: number
-  isFirst: boolean
-  isLast: boolean
-  showChevron: boolean
+
+
+
+type Project = typeof projectsData[number];
+
+interface ProjectCardProps {
+  project: Project;
 }
 
-const ExperienceItem: React.FC<ExperienceItemProps> = memo(
-  ({ item, isOpen, onToggle, index, isFirst, isLast, showChevron }) => {
-    const handleKeyDown = (e: React.KeyboardEvent) => {
-      if (!showChevron) return
-      if (e.repeat) return
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault()
-        onToggle(index)
-      }
-    }
-
-    const handleClick = () => {
-      if (!showChevron) return
-      onToggle(index)
-    }
-
-    return (
-      <div
-        className={`flex flex-col ${!isFirst ? 'pt-5' : ''} ${
-          !isLast ? 'pb-7 border-b border-dashed border-zinc-400 dark:border-zinc-600' : ''
-        }`}
-      >
-        <button
-          type="button"
-          onClick={handleClick}
-          onKeyDown={handleKeyDown}
-          aria-expanded={showChevron ? isOpen : undefined}
-          tabIndex={showChevron ? 0 : -1}
-          className={`w-full text-left group focus:outline-none ${
-            showChevron
-              ? 'cursor-pointer focus-visible:ring-2 focus-visible:ring-zinc-400'
-              : 'cursor-default'
-          }`}
-        >
-          <div className="font-semibold w-full flex justify-between items-start">
-            <h3 className="md:text-2xl text-lg text-zinc-900 dark:text-zinc-100">{item.role}</h3>
-            <span className="md:text-2xl text-lg font-medium text-zinc-900 dark:text-zinc-100">
-              {item.company}
-            </span>
-          </div>
-
-          <div className="flex justify-between md:text-base text-sm font-normal text-zinc-600 dark:text-zinc-400 mt-1">
-            <div className="flex gap-1.5">
-              <span>{item.location}</span>
-              <span>|</span>
-              <span>{item.type}</span>
+const ProjectCard: React.FC<ProjectCardProps> = memo(({ project }) => (
+  <div className='flex break-inside-avoid flex-col gap-3 h-fit rounded-lg overflow-hidden border border-dashed bg-zinc-100 dark:bg-zinc-900 border-zinc-400 dark:border-zinc-600'>
+    <Image
+      src={project.image}
+      alt={`${project.title} Project Preview`}
+      className='h-auto w-full border-b border-dashed border-zinc-400 dark:border-zinc-600'
+      sizes="(max-width: 640px) 100vw, 50vw"
+    />
+    <div className='p-2.5 pt-0 flex flex-col gap-1'>
+      <div className='flex gap-1.75 items-center justify-between w-full'>
+        <div className='flex items-center gap-1.75 text-md'>
+          <Image
+            src={project.icon}
+            alt={`${project.title} Project Icon`}
+            className='h-6 w-auto'
+          />
+          <h2 className='text-zinc-900 dark:text-zinc-100 font-medium'>
+            {project.title}
+          </h2>
+        </div>
+        <div className='flex gap-1.75 w-fit text-sm font-medium'>
+          {project.siteUrl && (
+            <div className='bg-neutral-50 py-1 px-1.25 rounded-lg dark:bg-neutral-950 border border-dashed border-zinc-400 dark:border-zinc-600'>
+              <Link href={project.siteUrl} target="_blank" rel="noopener noreferrer" className='flex gap-1 items-center'>
+                <Globe02Icon className='h-5' />
+                <span>Site</span>
+              </Link>
             </div>
-            <div className="flex items-center gap-2">
-              <span>{item.period}</span>
-              {showChevron && (
-                <ChevronDown
-                  size={18}
-                  className={`text-zinc-600 dark:text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-zinc-100 transition-transform duration-200 ease-out ${
-                    isOpen ? 'rotate-180' : 'rotate-0'
-                  }`}
-                />
-              )}
+          )}
+          {project.githubUrl && (
+            <div className='bg-neutral-50 rounded-lg p-1 border border-dashed border-zinc-400 dark:border-zinc-600 dark:bg-neutral-950'>
+              <Link href={project.githubUrl} target="_blank" rel="noopener noreferrer" className='flex gap-1 items-center'>
+                <GithubIcon className='h-5' />
+                <span>Code</span>
+              </Link>
             </div>
-          </div>
-        </button>
-
-        {/* CSS-Grid driven animation (Hardware accelerated, zero layout reflow lag) */}
-        <div
-          className={`grid transition-[grid-template-rows,opacity] duration-200 ease-out ${
-            isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
-          }`}
-        >
-          <div className="overflow-hidden">
-            <div className="text-zinc-800 font-light dark:text-zinc-200 md:text-base text-sm gap-3 flex flex-col pt-3">
-              {item.description && item.description.length > 0 && (
-                <div className="flex flex-col gap-1">
-                  {item.description.map((point) => (
-                    <div key={point} className="flex gap-2">
-                      <span>&gt;</span>
-                      <p>{point}</p>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {item.tools && item.tools.length > 0 && (
-                <div className="flex flex-wrap gap-2 pt-1">
-                  {item.tools.map((tool) => (
-                    <div
-                      key={tool}
-                      className="rounded-lg bg-zinc-100 dark:bg-zinc-900 w-fit px-2 py-1 font-mono text-xs border border-dashed border-zinc-400 dark:border-zinc-600"
-                    >
-                      <span>{tool}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
+          )}
         </div>
       </div>
-    )
-  }
-)
+      <h3 className='text-sm mt-1'>
+        {project.description}
+      </h3>
+    </div>
+  </div>
+));
 
-ExperienceItem.displayName = 'ExperienceItem'
+ProjectCard.displayName = 'ProjectCard';
 
-interface ExperienceProps {
-  limit?: number
-  openChevron?: boolean
-  showChevron?: boolean
-  title?: React.ReactNode | null | boolean
+interface ProjectsProps {
+  limit?: number;
+  title?: React.ReactNode | null;
+  paddingTop?: boolean;
+  paddingBottom?: boolean;
 }
 
-const Experience = ({ limit, openChevron, showChevron = true, title }: ExperienceProps) => {
-  const displayedExperiences = useMemo(() => {
-    const reversed = [...experiencesData].reverse()
-    return limit ? reversed.slice(0, limit) : reversed
-  }, [limit])
-
-  const [openIndices, setOpenIndices] = useState<Set<number>>(() =>
-    openChevron ? new Set(displayedExperiences.map((_, i) => i)) : new Set()
-  )
-
-  const handleToggle = useCallback((index: number) => {
-    setOpenIndices((prev) => {
-      const next = new Set(prev)
-      if (next.has(index)) {
-        next.delete(index)
-      } else {
-        next.add(index)
-      }
-      return next
-    })
-  }, [])
-
-  useEffect(() => {
-    setOpenIndices(openChevron ? new Set(displayedExperiences.map((_, i) => i)) : new Set())
-  }, [openChevron, displayedExperiences])
+const Projects = ({
+  limit,
+  title,
+  paddingTop = true,
+  paddingBottom = true,
+}: ProjectsProps) => {
+  const { leftColumn, rightColumn } = useMemo(() => {
+    const reversed = [...projectsData].reverse();
+    const displayed = limit ? reversed.slice(0, limit) : reversed;
+    return {
+      leftColumn: displayed.filter((_, i) => i % 2 === 0),
+      rightColumn: displayed.filter((_, i) => i % 2 === 1),
+    };
+  }, [limit]);
 
   const headerTitle = useMemo(() => {
-    if (title === null || title === false) return null
-    if (title) return title
-    return 'Current Experience'
-  }, [title])
+    if (title === null) return null;
+    if (title !== undefined) return title;
+    return limit ? ' Latest Projects' : 'All Projects';
+  }, [title, limit]);
 
   return (
-    <div className="flex p-5 gap-5 flex-col text-lg">
+    <div
+      className={`flex px-5 flex-col gap-5 text-lg text-zinc-800 dark:text-zinc-300 ${
+        paddingTop ? 'pt-5' : 'pt-0'
+      } ${paddingBottom ? 'pb-5' : 'pb-0'}`}
+    >
       {headerTitle !== null && (
-        <div className="flex items-center justify-between w-full">
-          <h1 className="font-pixel text-base text-zinc-600 dark:text-zinc-400">
+        <div className='flex items-center justify-between w-full'>
+          <h1 className='font-pixel text-base text-zinc-600 dark:text-zinc-400'>
             {headerTitle}
           </h1>
         </div>
       )}
-      <div className="flex flex-col">
-        {displayedExperiences?.map((item, index) => (
-          <ExperienceItem
-            key={item.company + item.period}
-            item={item}
-            index={index}
-            isOpen={openIndices.has(index)}
-            onToggle={handleToggle}
-            isFirst={index === 0}
-            isLast={index === displayedExperiences.length - 1}
-            showChevron={showChevron}
-          />
-        ))}
+
+      <div className='flex flex-col sm:flex-row gap-5'>
+        <div className='flex flex-col gap-5 w-full'>
+          {leftColumn.map((project) => (
+            <ProjectCard key={project.title + project.siteUrl} project={project} />
+          ))}
+        </div>
+        <div className='flex flex-col gap-5 w-full'>
+          {rightColumn.map((project) => (
+            <ProjectCard key={project.title + project.siteUrl} project={project} />
+          ))}
+        </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Experience
+export default Projects;
