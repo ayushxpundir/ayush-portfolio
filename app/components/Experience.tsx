@@ -1,42 +1,66 @@
 'use client'
-
 import React, { useState, useCallback, useMemo, memo, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronDown } from 'lucide-react'
 import { experiencesData } from '@/app/data/experienceData'
 
+interface ExperienceItemData {
+  role: string
+  company: string
+  location: string
+  type: string
+  period: string
+  description?: string[]
+  tools?: string[]
+}
+
 interface ExperienceItemProps {
-  item: {
-    role: string
-    company: string
-    location: string
-    type: string
-    period: string
-    description?: string[]
-    tools?: string[]
-  }
+  item: ExperienceItemData
+  index: number
   isOpen: boolean
-  onToggle: () => void
+  onToggle: (index: number) => void
   isFirst: boolean
   isLast: boolean
   showChevron: boolean
 }
 
-const ExperienceItem: React.FC<ExperienceItemProps> = memo(
-  ({ item, isOpen, onToggle, isFirst, isLast, showChevron }) => {
-    const handleKeyDown = (e: React.KeyboardEvent) => {
-      if (!showChevron) return
-      if (e.repeat) return
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault()
-        onToggle()
-      }
-    }
+// Lightweight inline chevron — no icon library needed
+const Chevron = memo(({ open }: { open: boolean }) => (
+  <svg
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={`shrink-0 transition-transform duration-200 ease-in-out will-change-transform ${
+      open ? 'rotate-180' : 'rotate-0'
+    }`}
+  >
+    <polyline points="6 9 12 15 18 9" />
+  </svg>
+))
+Chevron.displayName = 'Chevron'
 
-    const handleClick = () => {
+const ExperienceItem: React.FC<ExperienceItemProps> = memo(
+  ({ item, index, isOpen, onToggle, isFirst, isLast, showChevron }) => {
+    const contentId = `experience-content-${index}`
+
+    const handleClick = useCallback(() => {
       if (!showChevron) return
-      onToggle()
-    }
+      onToggle(index)
+    }, [showChevron, onToggle, index])
+
+    const handleKeyDown = useCallback(
+      (e: React.KeyboardEvent) => {
+        if (!showChevron || e.repeat) return
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          onToggle(index)
+        }
+      },
+      [showChevron, onToggle, index]
+    )
 
     return (
       <div
@@ -49,6 +73,7 @@ const ExperienceItem: React.FC<ExperienceItemProps> = memo(
           onClick={handleClick}
           onKeyDown={handleKeyDown}
           aria-expanded={showChevron ? isOpen : undefined}
+          aria-controls={showChevron ? contentId : undefined}
           tabIndex={showChevron ? 0 : -1}
           className={`w-full text-left group focus:outline-none ${
             showChevron
@@ -62,7 +87,6 @@ const ExperienceItem: React.FC<ExperienceItemProps> = memo(
               {item.company}
             </span>
           </div>
-
           <div className="flex justify-between md:text-base text-sm font-normal text-zinc-600 dark:text-zinc-400 mt-1">
             <div className="flex gap-1.5">
               <span>{item.location}</span>
@@ -72,68 +96,66 @@ const ExperienceItem: React.FC<ExperienceItemProps> = memo(
             <div className="flex items-center gap-2">
               <span>{item.period}</span>
               {showChevron && (
-                <motion.div
-                  animate={{ rotate: isOpen ? 180 : 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="will-change-transform text-zinc-600 dark:text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-zinc-100 transition-colors"
-                >
-                  <ChevronDown size={18} />
-                </motion.div>
+                <span className="text-zinc-600 dark:text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-zinc-100 transition-colors">
+                  <Chevron open={isOpen} />
+                </span>
               )}
             </div>
           </div>
         </button>
 
-        <AnimatePresence initial={false}>
-          {isOpen && (
-            <motion.div
-              key="content"
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.2, ease: 'easeInOut' }}
-              className="overflow-hidden will-change-[height,opacity]"
+        {/* CSS-only expand/collapse via grid-template-rows (0fr -> 1fr).
+            Kept mounted at all times so the transition can animate;
+            overflow-hidden on the inner wrapper clips content while collapsed. */}
+        <div
+          id={contentId}
+          aria-hidden={!isOpen}
+          className={`grid transition-[grid-template-rows] duration-300 ease-in-out ${
+            isOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
+          }`}
+        >
+          <div className="overflow-hidden">
+            <div
+              className={`text-zinc-800 font-light dark:text-zinc-200 md:text-base text-sm gap-3 flex flex-col pt-3 transition-opacity duration-300 ease-in-out ${
+                isOpen ? 'opacity-100 delay-100' : 'opacity-0'
+              }`}
             >
-              <div className=" text-zinc-800 font-light dark:text-zinc-200 md:text-base text-sm gap-3 flex flex-col pt-3">
-                {item.description && item.description.length > 0 && (
-                  <div className="flex flex-col gap-1">
-                    {item.description.map((point, index) => (
-                      <div key={index} className="flex gap-2">
-                        <span>&gt;</span>
-                        <p>{point}</p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {item.tools && item.tools.length > 0 && (
-                  <div className="flex flex-wrap gap-2 pt-1">
-                    {item.tools.map((tool, index) => (
-                      <div
-                        key={index}
-                        className="rounded-lg bg-zinc-100 dark:bg-zinc-900 w-fit px-2 py-1 font-mono text-xs border border-dashed border-zinc-400 dark:border-zinc-600"
-                      >
-                        <span>{tool}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+              {item.description && item.description.length > 0 && (
+                <div className="flex flex-col gap-1">
+                  {item.description.map((point, i) => (
+                    <div key={i} className="flex gap-2">
+                      <span>&gt;</span>
+                      <p>{point}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {item.tools && item.tools.length > 0 && (
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {item.tools.map((tool, i) => (
+                    <div
+                      key={i}
+                      className="rounded-lg bg-zinc-100 dark:bg-zinc-900 w-fit px-2 py-1 font-mono text-xs border border-dashed border-zinc-400 dark:border-zinc-600"
+                    >
+                      <span>{tool}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
     )
   }
 )
-
 ExperienceItem.displayName = 'ExperienceItem'
 
 interface ExperienceProps {
   limit?: number
-  openChevron?: boolean // pass `true` to force all items open by default
-  showChevron?: boolean // pass `false` to hide the chevron AND disable open/close toggling, defaults to true
-  title?: React.ReactNode | null | boolean // pass `null` or `false` to hide title, or pass custom text
+  openChevron?: boolean
+  showChevron?: boolean
+  title?: React.ReactNode | null | boolean
 }
 
 const Experience = ({ limit, openChevron, showChevron = true, title }: ExperienceProps) => {
@@ -142,21 +164,23 @@ const Experience = ({ limit, openChevron, showChevron = true, title }: Experienc
     return limit ? reversed.slice(0, limit) : reversed
   }, [limit])
 
-  const [openIndices, setOpenIndices] = useState<number[]>(() =>
-    openChevron ? displayedExperiences.map((_, i) => i) : []
+  const [openIndices, setOpenIndices] = useState<Set<number>>(() =>
+    openChevron ? new Set(displayedExperiences.map((_, i) => i)) : new Set()
   )
 
+  // Stable across renders — child components can safely memo on this
   const handleToggle = useCallback((index: number) => {
-    setOpenIndices((prev) =>
-      prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
-    )
+    setOpenIndices((prev) => {
+      const next = new Set(prev)
+      next.has(index) ? next.delete(index) : next.add(index)
+      return next
+    })
   }, [])
 
   useEffect(() => {
-    setOpenIndices(openChevron ? displayedExperiences.map((_, i) => i) : [])
+    setOpenIndices(openChevron ? new Set(displayedExperiences.map((_, i) => i)) : new Set())
   }, [openChevron, displayedExperiences])
 
-  // Resolve the title: if null or false, don't render. If undefined, fallback to default.
   const headerTitle = useMemo(() => {
     if (title === null || title === false) return null
     if (title) return title
@@ -167,18 +191,17 @@ const Experience = ({ limit, openChevron, showChevron = true, title }: Experienc
     <div className="flex p-5 gap-5 flex-col text-lg">
       {headerTitle !== null && (
         <div className="flex items-center justify-between w-full">
-          <h1 className="font-pixel text-base text-zinc-600 dark:text-zinc-400">
-            {headerTitle}
-          </h1>
+          <h1 className="font-pixel text-base text-zinc-600 dark:text-zinc-400">{headerTitle}</h1>
         </div>
       )}
       <div className="flex flex-col">
-        {displayedExperiences?.map((item, index) => (
+        {displayedExperiences.map((item, index) => (
           <ExperienceItem
             key={item.company + item.period}
             item={item}
-            isOpen={openIndices.includes(index)}
-            onToggle={() => handleToggle(index)}
+            index={index}
+            isOpen={openIndices.has(index)}
+            onToggle={handleToggle}
             isFirst={index === 0}
             isLast={index === displayedExperiences.length - 1}
             showChevron={showChevron}
