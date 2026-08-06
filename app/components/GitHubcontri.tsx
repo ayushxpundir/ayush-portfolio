@@ -1,35 +1,48 @@
 "use client";
-import React, { useEffect, useState, useMemo } from 'react';
-import { GitHubCalendar } from 'react-github-calendar';
+import React, { useEffect, useState, useMemo, useCallback, useSyncExternalStore } from 'react';
+import { GitHubCalendar, type Activity } from 'react-github-calendar';
 import { useTheme } from 'next-themes';
 
+// Returns false on the server and on the very first client render, then true
+// after hydration — without ever calling setState synchronously inside an
+// effect (which is what triggered the "cascading renders" warning). The
+// subscribe function is a no-op since this value never changes after mount.
+const emptySubscribe = () => () => {};
+function useMounted() {
+  return useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false
+  );
+}
+
 interface GitHubcontriProps {
+  username?: string;
   months?: number; // how many recent months to display, defaults to 8
 }
 
-const GitHubcontri = ({ months = 8 }: GitHubcontriProps) => {
+// Static theme config — doesn't depend on props/state, so define once
+// outside the component instead of recreating it on every render.
+const EXPLICIT_THEME = {
+  light: ['#e4e4e7', '#d4d4d8', '#a1a1aa', '#52525b', '#18181b'], // zinc-100 to zinc-900
+  dark: ['#27272a', '#3f3f46', '#71717a', '#a1a1aa', '#f4f4f5'],  // zinc-800 to zinc-100
+};
+
+const GitHubcontri = ({ username = 'ayushxpundir', months = 8 }: GitHubcontriProps) => {
   const { resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-  const [fontSize, setFontSize] = useState(15)
+  const mounted = useMounted();
+  const [fontSize, setFontSize] = useState(15);
 
+  // Use matchMedia instead of a raw resize listener: it only fires when the
+  // breakpoint is actually crossed, instead of on every pixel of resizing.
   useEffect(() => {
-    setMounted(true);
+    const mql = window.matchMedia('(max-width: 767px)');
+    const applySize = () => setFontSize(mql.matches ? 11 : 15);
+
+    applySize(); // set initial size
+    mql.addEventListener('change', applySize);
+    return () => mql.removeEventListener('change', applySize);
   }, []);
-
-  useEffect(() => {
-    const handleResize = () => {
-      // 768px matches Tailwind's 'md' breakpoint
-      setFontSize(window.innerWidth < 768 ? 11 : 15)
-    }
-    handleResize() // Set initial size
-    window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
-  }, [])
-
-  const explicitTheme = {
-    light: ['#e4e4e7', '#d4d4d8', '#a1a1aa', '#52525b', '#18181b'], // zinc-100 to zinc-900
-    dark: ['#27272a', '#3f3f46', '#71717a', '#a1a1aa', '#f4f4f5'],  // zinc-800 to zinc-100
-  };
 
   // Only keep contribution days from the last `months` months (real calendar
   // dates straight from GitHub's data, so day counts per month stay accurate)
@@ -40,16 +53,22 @@ const GitHubcontri = ({ months = 8 }: GitHubcontriProps) => {
     return d;
   }, [months]);
 
+  // Memoized so GitHubCalendar doesn't see a new function reference (and
+  // potentially redo work) on every render.
+  const transformData = useCallback(
+    (contributions: Activity[]) =>
+      contributions.filter((day) => new Date(day.date) >= cutoffDate),
+    [cutoffDate]
+  );
+
   // Prevent hydration mismatch by rendering a placeholder until mounted on client
   if (!mounted) {
     return (
       <div className="flex flex-col gap-4 p-5 pt-0 text-zinc-800 dark:text-zinc-200">
         <div className="flex items-center justify-between">
-          <h2 className="font-pixel text-base ">
-            GitHub Contributions
-          </h2>
+          <h2 className="font-pixel text-base">GitHub Contributions</h2>
         </div>
-        <div className="w-full h-160px animate-pulse bg-zinc-100 dark:bg-zinc-800/50" />
+        <div className="w-full h-40 animate-pulse bg-zinc-100 dark:bg-zinc-800/50" />
       </div>
     );
   }
@@ -60,23 +79,22 @@ const GitHubcontri = ({ months = 8 }: GitHubcontriProps) => {
     <div className="flex flex-col gap-4 p-5 text-zinc-800 dark:text-zinc-200">
       {/* Header with Title */}
       <div className="flex items-center justify-between">
-        <h2 className="font-pixel text-base text-zinc-600 dark:text-zinc-400 w-full">
+        <h2 className="font-pixel text-base text-zinc-600 dark:text-zinc-400">
           GitHub Contributions
         </h2>
       </div>
+
       {/* Contribution Heatmap Calendar */}
-      <div className="w-full overflow-x-auto [&_rect]:stroke-none! [&_rect]:stroke-width:0! [&_rect]:outline-none!">
+      <div className="w-full overflow-x-auto [&_rect]:stroke-none! [&_rect]:stroke-0! [&_rect]:outline-none!">
         <GitHubCalendar
-          username="ayushxpundir"
+          username={username}
           colorScheme={currentColorScheme}
-          theme={explicitTheme}
+          theme={EXPLICIT_THEME}
           blockSize={15}
           blockMargin={4}
           blockRadius={3}
           fontSize={fontSize}
-          transformData={(contributions) =>
-            contributions.filter((day) => new Date(day.date) >= cutoffDate)
-          }
+          transformData={transformData}
           style={{
             color: resolvedTheme === 'dark' ? '#a1a1aa' : '#52525b',
           }}

@@ -1,18 +1,26 @@
 "use client";
+import React, { useState, useMemo, useSyncExternalStore } from "react";
+import { techStackData, Category } from "@/app/data/techstackdata";
 
-import React, { useState, useMemo, useEffect } from "react";
-import { techStackData, Category } from "@/app/data/techstackdata"; 
+// Returns false on the server and on the very first client render, then true
+// after hydration — without calling setState synchronously inside an effect
+// (which is what triggered the "cascading renders" warning). The subscribe
+// function is a no-op since this value never changes after mount.
+const emptySubscribe = () => () => {};
+function useMounted() {
+  return useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false
+  );
+}
 
 const categories: Category[] = ["All", "Frontend", "Backend", "Tools"];
 
 const Techstack = () => {
   const [activeTab, setActiveTab] = useState<Category>("All");
-  const [isMounted, setIsMounted] = useState(false);
-
   // Prevents SSR mismatch for randomized Iconify SVG IDs
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
+  const isMounted = useMounted();
 
   // Memoize filtered data to prevent unnecessary recalculations on re-renders
   const filteredData = useMemo(() => {
@@ -26,7 +34,6 @@ const Techstack = () => {
         <h1 className="text-base text-zinc-600 font-pixel dark:text-zinc-400">
           Tech Stack
         </h1>
-
         {/* Filter Bar */}
         <div className="flex  flex-wrap gap-2 text-sm" role="group" aria-label="Filter technologies">
           {categories.map((category) => (
@@ -46,7 +53,6 @@ const Techstack = () => {
           ))}
         </div>
       </div>
-
       {/* Tech Grid */}
       <div className="flex flex-wrap gap-1.75">
         {filteredData.map(({ name, IconComponent, className }) => (
@@ -55,13 +61,13 @@ const Techstack = () => {
             className="flex rounded-lg items-center size-fit gap-1.75 md:px-2.5 md:py-1.75 py-1 px-2 border border-dashed bg-zinc-100 text-zinc-700 border-zinc-400 dark:bg-zinc-900 dark:text-zinc-300 dark:border-zinc-600"
           >
             {isMounted ? (
-              <IconComponent 
-                className={`shrink-0  h-4 md:h-5 ${className || ""}`} 
+              <IconComponent
+                className={`shrink-0  h-4 md:h-5 ${className || ""}`}
               />
             ) : (
               <div className="shrink-0 w-6 h-4 md:h-6" />
             )}
-            
+
             <span>{name}</span>
           </div>
         ))}

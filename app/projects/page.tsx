@@ -1,11 +1,7 @@
 import { Metadata } from 'next';
-import Experience from "@/app/components/Experience";
 import Footer from "@/app/components/Footer";
-import GitHubcontri from "@/app/components/GitHubcontri";
-import Hero from "@/app/components/Hero";
 import Navbar from "@/app/components/Navbar";
 import Projects from "@/app/components/Projects";
-import Techstack from "@/app/components/Techstack";
 import BackButton from "@/components/BackButton";
 
 // Export metadata here (Runs on Server)
@@ -30,7 +26,7 @@ export default function Home() {
               <h1>Projects</h1>
             </div>
             <div className="text-base font-pixel text-zinc-600 dark:text-zinc-400 font-medium">
-              <h2>A collection of work I've made.</h2>
+              <h2>A collection of work I&apos;ve made.</h2>
             </div>
           </div>
           <Projects title={null} />

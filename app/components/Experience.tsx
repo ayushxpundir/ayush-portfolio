@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, useCallback, useMemo, memo, useEffect } from 'react'
+import React, { useState, useCallback, useMemo, memo } from 'react'
 import { experiencesData } from '@/app/data/experienceData'
 
 interface ExperienceItemData {
@@ -104,45 +104,40 @@ const ExperienceItem: React.FC<ExperienceItemProps> = memo(
           </div>
         </button>
 
-        {/* CSS-only expand/collapse via grid-template-rows (0fr -> 1fr).
-            Kept mounted at all times so the transition can animate;
-            overflow-hidden on the inner wrapper clips content while collapsed. */}
         <div
           id={contentId}
           aria-hidden={!isOpen}
-          className={`grid transition-[grid-template-rows] duration-300 ease-in-out ${
-            isOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
+          className={`overflow-hidden transition-[max-height] duration-300 ease-in-out will-change-[max-height] ${
+            isOpen ? 'max-h-125' : 'max-h-0'
           }`}
         >
-          <div className="overflow-hidden">
-            <div
-              className={`text-zinc-800 font-light dark:text-zinc-200 md:text-base text-sm gap-3 flex flex-col pt-3 transition-opacity duration-300 ease-in-out ${
-                isOpen ? 'opacity-100 delay-100' : 'opacity-0'
-              }`}
-            >
-              {item.description && item.description.length > 0 && (
-                <div className="flex flex-col gap-1">
-                  {item.description.map((point, i) => (
-                    <div key={i} className="flex gap-2">
-                      <span>&gt;</span>
-                      <p>{point}</p>
-                    </div>
-                  ))}
-                </div>
-              )}
-              {item.tools && item.tools.length > 0 && (
-                <div className="flex flex-wrap gap-2 pt-1">
-                  {item.tools.map((tool, i) => (
-                    <div
-                      key={i}
-                      className="rounded-lg bg-zinc-100 dark:bg-zinc-900 w-fit px-2 py-1 font-mono text-xs border border-dashed border-zinc-400 dark:border-zinc-600"
-                    >
-                      <span>{tool}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+          <div
+            className={`text-zinc-800 font-light dark:text-zinc-200 md:text-base text-sm gap-3 flex flex-col pt-3 transition-opacity duration-300 ease-in-out ${
+              isOpen ? 'opacity-100 delay-100' : 'opacity-0'
+            }`}
+          >
+            {item.description && item.description.length > 0 && (
+              <div className="flex flex-col gap-1">
+                {item.description.map((point, i) => (
+                  <div key={i} className="flex gap-2">
+                    <span>&gt;</span>
+                    <p>{point}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+            {item.tools && item.tools.length > 0 && (
+              <div className="flex flex-wrap gap-2 pt-1">
+                {item.tools.map((tool, i) => (
+                  <div
+                    key={i}
+                    className="rounded-lg bg-zinc-100 dark:bg-zinc-900 w-fit px-2 py-1 font-mono text-xs border border-dashed border-zinc-400 dark:border-zinc-600"
+                  >
+                    <span>{tool}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -172,14 +167,14 @@ const Experience = ({ limit, openChevron, showChevron = true, title }: Experienc
   const handleToggle = useCallback((index: number) => {
     setOpenIndices((prev) => {
       const next = new Set(prev)
-      next.has(index) ? next.delete(index) : next.add(index)
+      if (next.has(index)) {
+        next.delete(index)
+      } else {
+        next.add(index)
+      }
       return next
     })
   }, [])
-
-  useEffect(() => {
-    setOpenIndices(openChevron ? new Set(displayedExperiences.map((_, i) => i)) : new Set())
-  }, [openChevron, displayedExperiences])
 
   const headerTitle = useMemo(() => {
     if (title === null || title === false) return null

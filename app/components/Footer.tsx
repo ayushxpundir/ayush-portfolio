@@ -1,19 +1,31 @@
 'use client'
+import React, { useState, useEffect, useSyncExternalStore } from 'react'
 
-import React, { useState, useEffect } from 'react'
+// Returns false on the server and on the very first client render, then true
+// after hydration — without calling setState synchronously inside an effect
+// (which is what triggered the "cascading renders" warning). The subscribe
+// function is a no-op since this value never changes after mount.
+const emptySubscribe = () => () => {}
+function useMounted() {
+    return useSyncExternalStore(
+        emptySubscribe,
+        () => true,
+        () => false
+    )
+}
 
 const Footer = () => {
     const [time, setTime] = useState<string>('')
     const [year, setYear] = useState<number>(new Date().getFullYear())
-    const [mounted, setMounted] = useState<boolean>(false)
+    const mounted = useMounted()
 
+    // Subscribes to an external ticking clock and keeps time/year in sync.
+    // This is a legitimate effect (syncing with an external system, the
+    // system clock) rather than a synchronous setState-on-mount.
     useEffect(() => {
-        setMounted(true)
-
         const updateDateTime = () => {
             const now = new Date()
             setYear(now.getFullYear())
-
             // Format time into "07:23 PM IST" (without seconds)
             const formattedTime = now.toLocaleTimeString('en-US', {
                 timeZone: 'Asia/Kolkata',
@@ -21,13 +33,10 @@ const Footer = () => {
                 minute: '2-digit',
                 hour12: true,
             })
-
             setTime(`${formattedTime} IST`)
         }
-
         updateDateTime()
         const timer = setInterval(updateDateTime, 1000)
-
         return () => clearInterval(timer)
     }, [])
 
@@ -43,5 +52,4 @@ const Footer = () => {
         </div>
     )
 }
-
 export default Footer
