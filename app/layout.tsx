@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { GeistPixelSquare } from "geist/font/pixel";
 import { ThemeProvider } from "@/components/ThemeProvider";
-import PageLoadingBar from "@/components/PageLoadingBar";
+import SmoothScrollProvider from "@/components/SmoothScrollProvider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -158,8 +158,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <PageLoadingBar />
-          {children}
+          <SmoothScrollProvider>
+            {children}
+          </SmoothScrollProvider>
         </ThemeProvider>
       </body>
     </html>

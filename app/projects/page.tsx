@@ -17,7 +17,7 @@ export default function Home() {
       <div className="md:w-175.5 w-full min-h-full flex flex-col font-sans">
         <Navbar />
         <main className="flex flex-col flex-1">
-          <div className="flex flex-col gap-1 p-5 pt-0">
+          <div className="flex flex-col gap-1 p-5 pb-0 pt-0">
             <div>
               <BackButton />
             </div>

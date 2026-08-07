@@ -7,14 +7,16 @@
   --font-pixel: var(--font-geist-pixel-square);
 }
 
+html {
+  scrollbar-gutter: stable;
+}
+
 /* =========================================================
    1. Modern Standard (Firefox & standard browsers)
    ========================================================= */
 * {
-  scrollbar-width: thin;
-  /* Options: auto, thin, none */
-  scrollbar-color: #52525b #18181b00;
-  /* [Thumb Color] [Track/Background Color] */
+  scrollbar-width: none;
+  scrollbar-color: transparent transparent;
 }
 
 /* =========================================================
@@ -23,30 +25,8 @@
 
 /* Width (for vertical scrollbars) & Height (for horizontal scrollbars) */
 ::-webkit-scrollbar {
-  width: 6px;
-  /* Adjust vertical scrollbar width */
-  height: 6px;
-  /* Adjust horizontal scrollbar height */
-}
-
-/* Scrollbar Track (Background) */
-::-webkit-scrollbar-track {
-  background: #18181b;
-  /* Dark background matching your theme */
-  border-radius: 4px;
-}
-
-/* Scrollbar Handle / Thumb */
-::-webkit-scrollbar-thumb {
-  background: #3f3f46;
-  /* Scrollbar bar color */
-  border-radius: 4px;
-}
-
-/* Scrollbar Handle on Hover */
-::-webkit-scrollbar-thumb:hover {
-  background: #71717a;
-  /* Color when hovering over scrollbar */
+  width: 0;
+  height: 0;
 }
 
 /* Hide scrollbar buttons/arrows (optional) */

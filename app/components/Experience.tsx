@@ -15,11 +15,8 @@ interface ExperienceItemData {
 interface ExperienceItemProps {
   item: ExperienceItemData
   index: number
-  isOpen: boolean
-  onToggle: (index: number) => void
   isFirst: boolean
   isLast: boolean
-  showChevron: boolean
 }
 
 // Lightweight inline chevron — no icon library needed
@@ -43,24 +40,8 @@ const Chevron = memo(({ open }: { open: boolean }) => (
 Chevron.displayName = 'Chevron'
 
 const ExperienceItem: React.FC<ExperienceItemProps> = memo(
-  ({ item, index, isOpen, onToggle, isFirst, isLast, showChevron }) => {
+  ({ item, index, isFirst, isLast }) => {
     const contentId = `experience-content-${index}`
-
-    const handleClick = useCallback(() => {
-      if (!showChevron) return
-      onToggle(index)
-    }, [showChevron, onToggle, index])
-
-    const handleKeyDown = useCallback(
-      (e: React.KeyboardEvent) => {
-        if (!showChevron || e.repeat) return
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault()
-          onToggle(index)
-        }
-      },
-      [showChevron, onToggle, index]
-    )
 
     return (
       <div
@@ -68,19 +49,7 @@ const ExperienceItem: React.FC<ExperienceItemProps> = memo(
           !isLast ? 'pb-7 border-b border-dashed border-zinc-400 dark:border-zinc-600' : ''
         }`}
       >
-        <button
-          type="button"
-          onClick={handleClick}
-          onKeyDown={handleKeyDown}
-          aria-expanded={showChevron ? isOpen : undefined}
-          aria-controls={showChevron ? contentId : undefined}
-          tabIndex={showChevron ? 0 : -1}
-          className={`w-full text-left group focus:outline-none ${
-            showChevron
-              ? 'cursor-pointer focus-visible:ring-2 focus-visible:ring-zinc-400'
-              : 'cursor-default'
-          }`}
-        >
+        <div className="w-full text-left group focus:outline-none cursor-default">
           <div className="font-semibold w-full flex justify-between items-start">
             <h3 className="md:text-2xl text-lg text-zinc-900 dark:text-zinc-100">{item.role}</h3>
             <span className="md:text-2xl text-lg font-medium text-zinc-900 dark:text-zinc-100">
@@ -95,27 +64,12 @@ const ExperienceItem: React.FC<ExperienceItemProps> = memo(
             </div>
             <div className="flex items-center gap-2">
               <span>{item.period}</span>
-              {showChevron && (
-                <span className="text-zinc-600 dark:text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-zinc-100 transition-colors">
-                  <Chevron open={isOpen} />
-                </span>
-              )}
             </div>
           </div>
-        </button>
+        </div>
 
-        <div
-          id={contentId}
-          aria-hidden={!isOpen}
-          className={`overflow-hidden transition-[max-height] duration-300 ease-in-out will-change-[max-height] ${
-            isOpen ? 'max-h-125' : 'max-h-0'
-          }`}
-        >
-          <div
-            className={`text-zinc-800 font-light dark:text-zinc-200 md:text-base text-sm gap-3 flex flex-col pt-3 transition-opacity duration-300 ease-in-out ${
-              isOpen ? 'opacity-100 delay-100' : 'opacity-0'
-            }`}
-          >
+        <div id={contentId} className="pt-3">
+          <div className="text-zinc-800 font-light dark:text-zinc-200 md:text-base text-sm gap-3 flex flex-col">
             {item.description && item.description.length > 0 && (
               <div className="flex flex-col gap-1">
                 {item.description.map((point, i) => (
@@ -148,33 +102,14 @@ ExperienceItem.displayName = 'ExperienceItem'
 
 interface ExperienceProps {
   limit?: number
-  openChevron?: boolean
-  showChevron?: boolean
   title?: React.ReactNode | null | boolean
 }
 
-const Experience = ({ limit, openChevron, showChevron = true, title }: ExperienceProps) => {
+const Experience = ({ limit, title }: ExperienceProps) => {
   const displayedExperiences = useMemo(() => {
     const reversed = [...experiencesData].reverse()
     return limit ? reversed.slice(0, limit) : reversed
   }, [limit])
-
-  const [openIndices, setOpenIndices] = useState<Set<number>>(() =>
-    openChevron ? new Set(displayedExperiences.map((_, i) => i)) : new Set()
-  )
-
-  // Stable across renders — child components can safely memo on this
-  const handleToggle = useCallback((index: number) => {
-    setOpenIndices((prev) => {
-      const next = new Set(prev)
-      if (next.has(index)) {
-        next.delete(index)
-      } else {
-        next.add(index)
-      }
-      return next
-    })
-  }, [])
 
   const headerTitle = useMemo(() => {
     if (title === null || title === false) return null
@@ -195,11 +130,8 @@ const Experience = ({ limit, openChevron, showChevron = true, title }: Experienc
             key={item.company + item.period}
             item={item}
             index={index}
-            isOpen={openIndices.has(index)}
-            onToggle={handleToggle}
             isFirst={index === 0}
             isLast={index === displayedExperiences.length - 1}
-            showChevron={showChevron}
           />
         ))}
       </div>

@@ -3,8 +3,7 @@
 import React, { useMemo, memo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import Globe02Icon from '@iconify-react/hugeicons/globe-02';
-import GithubIcon from '@iconify-react/hugeicons/github';
+import { Globe } from 'lucide-react';
 import { projectsData } from '@/app/data/projectsData';
 
 
@@ -40,7 +39,7 @@ const ProjectCard: React.FC<ProjectCardProps> = memo(({ project }) => (
           {project.siteUrl && (
             <div className='bg-neutral-50 py-1 px-1.25 rounded-lg dark:bg-neutral-950 border border-dashed border-zinc-400 dark:border-zinc-600'>
               <Link href={project.siteUrl} target="_blank" rel="noopener noreferrer" className='flex gap-1 items-center'>
-                <Globe02Icon className='h-5' />
+                <Globe className='h-5' />
                 <span>Site</span>
               </Link>
             </div>
@@ -48,7 +47,20 @@ const ProjectCard: React.FC<ProjectCardProps> = memo(({ project }) => (
           {project.githubUrl && (
             <div className='bg-neutral-50 rounded-lg p-1 border border-dashed border-zinc-400 dark:border-zinc-600 dark:bg-neutral-950'>
               <Link href={project.githubUrl} target="_blank" rel="noopener noreferrer" className='flex gap-1 items-center'>
-                <GithubIcon className='h-5' />
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 24 24"
+                  className='h-5 w-5'
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M7 8l-4 4 4 4" />
+                  <path d="M17 8l4 4-4 4" />
+                  <path d="M14 5l-4 14" />
+                </svg>
                 <span>Code</span>
               </Link>
             </div>

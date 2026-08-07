@@ -23,7 +23,7 @@ export default function Home() {
                 <Navbar />
                 {/* 2. `flex-1` now correctly expands to push the Footer to the bottom */}
                 <main className="flex flex-col flex-1">
-                    <div className="flex flex-col gap-1 p-5 pt-0 text-zinc-900 dark:text-zinc-100">
+                    <div className="flex flex-col gap-1 p-5 pb-0 pt-0 text-zinc-900 dark:text-zinc-100">
                         <div>
                             <BackButton />
                         </div>
@@ -34,8 +34,7 @@ export default function Home() {
                             <h2>A summary of my work experience.</h2>
                         </div>
                     </div>
-                    {/* openChevron showChevron={false}  */}
-                    <Experience title={null} showChevron={false} openChevron={true} />
+                    <Experience title={null} />
                 </main>
                 <Footer />
             </div >
